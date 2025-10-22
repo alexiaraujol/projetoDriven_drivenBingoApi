@@ -53,7 +53,7 @@ jobs:
       - name: Run Prisma migrations
         run: npx prisma migrate deploy
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
+          DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/tests"
 
       - name: Run tests
         run: docker compose -f docker-compose-test.yml run backend npm run test:ci
