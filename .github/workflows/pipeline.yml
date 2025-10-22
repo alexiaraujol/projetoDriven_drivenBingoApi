@@ -6,7 +6,7 @@ on:
 
 jobs:
   CI-ContinuousIntegration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-lates
     services:
       postgres:
         image: postgres:15
