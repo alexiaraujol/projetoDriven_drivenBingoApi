@@ -40,6 +40,8 @@ jobs:
           done
 
       - name: Create tests database
+        env:
+          PGPASSWORD: postgres123
         run: |
           psql -h localhost -U postgres -c "CREATE DATABASE IF NOT EXISTS tests;"
 
