@@ -6,16 +6,46 @@ on:
 jobs:
   CI-ContinuousIntegration:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4 
+
       - name: Make new a .env file
         uses: SpicyPizza/create-envfile@v2.0.3
         with:
-         envkey_POSTGRES_PASSWORD: "postgres"
-         envkey_DATABASE_URL: "postgres://postgres:postgres@postgres:5432/tests"
-         directory: .
-         file_name: .env.test
+          envkey_POSTGRES_PASSWORD: "postgres"
+          envkey_DATABASE_URL: "postgres://postgres:postgres@postgres:5432/tests"
+          directory: .
+          file_name: .env.test
+
+      - name: Wait for Postgres to be ready
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for Postgres..."
+            sleep 2
+          done
+
+      - name: Create tests database
+        run: |
+          psql -h localhost -U postgres -c "CREATE DATABASE IF NOT EXISTS tests;"
+
+      - name: Run Prisma migrations
+        run: dotenv -e .env.test -- npx prisma migrate deploy
+
       - name: Run tests
         run: docker compose -f docker-compose-test.yml run backend npm run test:ci
 
