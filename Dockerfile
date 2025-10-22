@@ -1,5 +1,5 @@
 
-FROM node:20-bullseye
+FROM node:alpine
 
 WORKDIR /usr/src
 
