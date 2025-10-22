@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   CI-ContinuousIntegration:
@@ -13,16 +16,25 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Make new .env file
-        uses: SpicyPizza/create-envfile@v2.0.3
-        with:
-          envkey_PORT: 5000
-          envkey_POSTGRES_PASSWORD: "postgres"
-          envkey_POSTGRES_USER: "postgres"
-          envkey_POSTGRES_DB: "tests"
-          envkey_DATABASE_URL: "postgres://postgres:postgres@postgres:5432/tests"
-          directory: .
-          file_name: .env.test
+     
+      - name: Criar .env.test
+        run: |
+          mkdir -p back-end
+          echo "PORT=5000" >> back-end/.env.test
+          echo "POSTGRES_USER=postgres" >> back-end/.env.test
+          echo "POSTGRES_PASSWORD=postgres" >> back-end/.env.test
+          echo "POSTGRES_DB=mydatabase" >> back-end/.env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@mypostgres:5432/mydatabase" >> back-end/.env.test
+          echo "NODE_ENV=test" >> back-end/.env.test
 
-      - name: Run tests
-        run: docker compose -f docker-compose-test.yml run backend npm run test:ci
+      
+      - name: Subir serviços com Docker Compose
+        run: docker compose -f docker-compose-test.yml up -d --build
+
+      
+      - name: Rodar testes
+        run: docker compose -f docker-compose-test.yml run --rm backend npm run test:ci
+
+      
+      - name: Parar e remover containers
+        run: docker compose -f docker-compose-test.yml down -v
