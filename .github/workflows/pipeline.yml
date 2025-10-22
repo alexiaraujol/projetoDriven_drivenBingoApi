@@ -12,11 +12,10 @@ jobs:
   CI-ContinuousIntegration:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Repository
+  steps:
+      - name: Checkout
         uses: actions/checkout@v4
 
-     
       - name: Criar .env.test
         run: |
           mkdir -p back-end
@@ -27,14 +26,8 @@ jobs:
           echo "DATABASE_URL=postgresql://postgres:postgres@mypostgres:5432/mydatabase" >> back-end/.env.test
           echo "NODE_ENV=test" >> back-end/.env.test
 
-      
-      - name: Subir serviços com Docker Compose
-        run: docker compose -f docker-compose-test.yml up -d --build
+      - name: Subir serviços
+        run: docker compose -f docker-compose-test.yml up --build --abort-on-container-exit
 
-      
-      - name: Rodar testes
-        run: docker compose -f docker-compose-test.yml run --rm backend npm run test:ci
-
-      
-      - name: Parar e remover containers
+      - name: Limpar containers
         run: docker compose -f docker-compose-test.yml down -v
